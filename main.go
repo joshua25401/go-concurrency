@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	concurrencyproblem "go-concurrency/concurrency-problem"
 	"time"
 )
 
@@ -38,7 +37,17 @@ func main() {
 	// concurrencyproblem.DeadLock()
 
 	// Livelock
-	concurrencyproblem.LiveLock()
+	// concurrencyproblem.LiveLock()
+
+	// Sync Package
+
+	// WaitGroup
+	// syncpackage.ExampleWaitGroup()
+	// syncpackage.ExampleWaitGroup2()
+
+	// Mutex
+	// syncpackage.ExampleMutex()
+	// syncpackage.BenchMarkMutexAndRWMutex()
 
 	var totalExecutionTime = time.Since(startExec)
 	fmt.Printf("Total Execution Time = %v ms\n", totalExecutionTime.Milliseconds())
