@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	syncpackage "go-concurrency/sync-package"
 	"time"
 )
 
@@ -11,7 +12,8 @@ func main() {
 
 	// Race Condition
 	// Please use this command to run the main.go => go run -race main.go
-	// concurrencyproblem.RaceConditionDemo()
+	// concurrencyproblem.RaceConditionDemo()``
+	// concurrencyproblem.RaceConditionDemo2()
 
 	// Without Solution (Uncomment the line below)
 	// for i := 0; i < 1000; i++ {
@@ -48,7 +50,11 @@ func main() {
 	// Mutex
 	// syncpackage.ExampleMutex()
 	// syncpackage.BenchMarkMutexAndRWMutex()
+	syncpackage.ExampleProblemRaceConditionSolution()
 
+	// Cond
+	// syncpackage.ExampleCondUsage()
+	// syncpackage.ExampleUseBroadcastCond()
 	var totalExecutionTime = time.Since(startExec)
 	fmt.Printf("Total Execution Time = %v ms\n", totalExecutionTime.Milliseconds())
 }

@@ -3,6 +3,7 @@ package syncpackage
 import (
 	"fmt"
 	"math"
+	"math/rand"
 	"os"
 	"sync"
 	"text/tabwriter"
@@ -106,5 +107,128 @@ func BenchMarkMutexAndRWMutex() {
 			test(count, &m, m.RLocker()),
 			test(count, &m, &m),
 		)
+	}
+}
+
+func ExampleProblemRaceCondition() {
+	ticker := time.NewTicker(time.Second)
+	defer ticker.Stop()
+
+	doneChannel := make(chan bool)
+
+	// Shared Data
+	var sharedData int
+
+	incrementor := func() {
+		sharedData++
+	}
+
+	decrementor := func() {
+		sharedData--
+	}
+
+	printer := func() {
+		fmt.Println("Real Data:", sharedData)
+		fmt.Println()
+	}
+
+	go func() {
+		for {
+			incrementor()
+			fmt.Println("Current value (incr):", sharedData)
+			time.Sleep(1 * time.Second)
+		}
+	}()
+
+	go func() {
+		for {
+			decrementor()
+			fmt.Println("Current value (decr):", sharedData)
+			time.Sleep(1 * time.Second)
+		}
+	}()
+
+	go func() {
+		time.Sleep(20 * time.Second)
+		doneChannel <- true
+	}()
+
+	go func() {
+		for {
+			select {
+			case <-doneChannel:
+				fmt.Println("Program Exited")
+				return
+
+			case <-ticker.C:
+				printer()
+			}
+		}
+	}()
+
+	<-doneChannel
+}
+
+func ExampleProblemRaceConditionSolution() {
+	ticker := time.NewTicker(time.Second)
+	defer ticker.Stop()
+
+	doneChannel := make(chan bool)
+
+	var mu sync.Mutex
+	// Shared Data
+	var sharedData int
+
+	incrementor := func(lock *sync.Mutex) {
+		lock.Lock()
+		defer lock.Unlock()
+		sharedData++
+		fmt.Println("Current value (incr):", sharedData)
+	}
+
+	decrementor := func(lock *sync.Mutex) {
+		lock.Lock()
+		defer lock.Unlock()
+		sharedData--
+		fmt.Println("Current value (decr):", sharedData)
+	}
+
+	printer := func(lock *sync.Mutex) {
+		lock.Lock()
+		defer lock.Unlock()
+		fmt.Println("Real Data:", sharedData)
+		fmt.Println()
+	}
+
+	go func() {
+		for {
+			incrementor(&mu)
+			rand := rand.Int() % (100 * 10)
+			time.Sleep(time.Duration(rand * int(time.Millisecond)))
+		}
+	}()
+
+	go func() {
+		for {
+			decrementor(&mu)
+			rand := rand.Int() % (100 * 100)
+			time.Sleep(time.Duration(rand * int(time.Millisecond)))
+		}
+	}()
+
+	go func() {
+		time.Sleep(20 * time.Second)
+		doneChannel <- true
+	}()
+
+	for {
+		select {
+		case <-doneChannel:
+			fmt.Println("Program Exited")
+			return
+
+		case <-ticker.C:
+			printer(&mu)
+		}
 	}
 }

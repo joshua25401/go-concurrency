@@ -24,6 +24,46 @@ func RaceConditionDemo(iteration int) {
 	printData(iteration, data)
 }
 
+func RaceConditionDemo2() {
+	var mu sync.Mutex
+	var counter int
+
+	incrementFn := func() {
+		mu.Lock()
+		defer mu.Unlock()
+		time.Sleep(3 * time.Second)
+		counter++
+	}
+
+	decrementFn := func() {
+		mu.Lock()
+		defer mu.Unlock()
+		time.Sleep(2 * time.Second)
+		counter--
+	}
+
+	var stop = false
+
+	go func() {
+		for {
+			go incrementFn()
+		}
+	}()
+
+	go func() {
+		for {
+			go decrementFn()
+		}
+	}()
+
+	for !stop {
+		if counter%2 == 0 && counter != 0 && counter > 10 {
+			fmt.Println(counter, "= GENAP")
+			stop = true
+		}
+	}
+}
+
 func SolutionAddSleepToRaceCondition(iteration int) {
 	var data int
 
